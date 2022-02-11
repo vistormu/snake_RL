@@ -1,4 +1,4 @@
-from src import entities
+from src import game as gm
 from src import agent as ag
 from core import logger
 from src import plotter
@@ -12,22 +12,22 @@ def train():
     total_score = 0
     record = 0
     agent = ag.Agent()
-    game = entities.SnakeGameAI()
+    game = gm.SnakeGameAI()
 
     while True:
-        state_old = agent.get_state(game)
+        state = agent.get_state(game)
 
-        final_move = agent.get_action(state_old)
+        action = agent.get_action(state)
 
-        reward, done, score = game.play_step(final_move)
-        state_new = agent.get_state(game)
+        reward, game_over, score = game.play_step(action)
+        new_state = agent.get_state(game)
 
         agent.train_short_memory(
-            state_old, final_move, reward, state_new, done)
+            state, action, reward, new_state, game_over)
 
-        agent.remember(state_old, final_move, reward, state_new, done)
+        agent.remember(state, action, reward, new_state, game_over)
 
-        if done:
+        if game_over:
             game.reset()
 
             agent.n_games += 1

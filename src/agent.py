@@ -3,7 +3,7 @@ import random
 import numpy as np
 from collections import deque
 from src import constants as c
-from src import entities
+from src import game as gm
 from src import model
 
 
@@ -18,18 +18,18 @@ class Agent:
             c.INPUT_SIZE, c.HIDDEN_SIZE, c.OUTPUT_SIZE)
         self.trainer = model.QTrainer(self.model, lr=c.LR, gamma=self.gamma)
 
-    def get_state(self, game: entities.SnakeGameAI):
+    def get_state(self, game: gm.SnakeGameAI):
         head = game.snake[0]
 
-        point_left = entities.Point(head.x-1, head.y)
-        point_right = entities.Point(head.x+1, head.y)
-        point_up = entities.Point(head.x, head.y-1)
-        point_down = entities.Point(head.x, head.y+1)
+        point_left = gm.Point(head.x-1, head.y)
+        point_right = gm.Point(head.x+1, head.y)
+        point_up = gm.Point(head.x, head.y-1)
+        point_down = gm.Point(head.x, head.y+1)
 
-        dir_left = game.direction == entities.Direction.left
-        dir_right = game.direction == entities.Direction.right
-        dir_up = game.direction == entities.Direction.up
-        dir_down = game.direction == entities.Direction.down
+        dir_left = game.direction == gm.Direction.left
+        dir_right = game.direction == gm.Direction.right
+        dir_up = game.direction == gm.Direction.up
+        dir_down = game.direction == gm.Direction.down
 
         def _get_danger(direction):
             return (direction[0] and game.is_collision(point_right)) or \
@@ -80,14 +80,14 @@ class Agent:
     def get_action(self, state):
         # exploration / exploitation
         self.epsilon = 80 - self.n_games
-        final_move = [0, 0, 0]
+        action = [0, 0, 0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
-            final_move[move] = 1
+            action[move] = 1
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
-            final_move[move] = 1
+            action[move] = 1
 
-        return final_move
+        return action
